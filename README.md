@@ -48,22 +48,21 @@ project-feather/
 
 ⚙️ **Setup & Run**
 
-1.  **Create a project folder and navigate into it**
+1.  **Clone the repository**
 
     ```bash
-    mkdir OAuth && cd OAuth
+    git clone https://github.com/Ahmed-Ma7moud/google-oauth-login-nodejs.git
     ```
 
-2.  **Clone the repo**
+2.  **Navigate into the project folder**
 
     ```bash
-    git clone [https://github.com/Ahmed-Ma7moud/google-oauth-login-nodejs.git](https://github.com/Ahmed-Ma7moud/google-oauth-login-nodejs.git)
+    cd google-oauth-login-nodejs
     ```
 
-3.  **Install dependencies**
+3.  **Navigate to the backend folder and install dependencies**
 
     ```bash
-    # Backend
     cd backend
     npm install
     ```
@@ -86,7 +85,7 @@ project-feather/
 
     ```bash
     cd backend
-    npm start
+    node app.js
     ```
 
 6.  **Open the app**
