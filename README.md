@@ -51,18 +51,21 @@ project-feather/
 
 ⚙️ Setup & Run
 
-1. Clone the repo
+1. Create a project folder and navigate into it
 
-git clone https://github.com/<your-username>/project-feather.git
-cd project-feather
+mkdir OAuth && cd OAuth
 
-2. Install dependencies
+2. Clone the repo
+
+git clone https://github.com/Ahmed-Ma7moud/google-oauth-login-nodejs.git
+
+3. Install dependencies
 
 # Backend
 cd backend
 npm install
 
-3. Configure environment variables
+4. Configure environment variables
 
 Create a .env file in the backend/ folder with the following:
 
@@ -74,12 +77,12 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 
-4. Start the server
+5. Start the server
 
 cd backend
 npm start
 
-5. Open the app
+6. Open the app
 
 Navigate to http://localhost:3000 in your browser.
 
@@ -101,5 +104,5 @@ For a secure, full-featured OAuth solution, use Passport.js or similar.
 
 📝 License
 
-MIT © Your Name
+MIT © Ahmed Mahmoud
 
