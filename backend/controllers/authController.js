@@ -1,11 +1,22 @@
 const qs = require('qs');
 const axios = require('axios');
 const { OAuth2Client } = require('google-auth-library');
-
+const crypto = require('crypto')
 // login with google
 // 1 - redirect to google auth page
 exports.loginWithGoogle = async (req, res, next) => {
   try {
+    const state = crypto.randomBytes(32).toString('hex'); // for csrf protection
+    req.session.oauthState = state;
+
+    //save state in the session of the user
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ message: "Service temporarily unavailable" });
+      }
+    });
+
     const url = "https://accounts.google.com/o/oauth2/v2/auth?" +
       qs.stringify({
         client_id: process.env.GOOGLE_CLIENT_ID,
@@ -14,23 +25,50 @@ exports.loginWithGoogle = async (req, res, next) => {
         scope: "openid email profile",  // scopes of data we want to access
         access_type: "online", // donot need refresh token
         prompt: "select_account", // user grant permission for the first time
+        state: state
       });
     res.redirect(url);
   } catch (error) {
-    res.status(500).json({ message: `Failed to login with Google: ${error.message}` });
+    console.error('OAuth initiation error:', error);
+    res.status(500).json({ message: "Service temporarily unavailable" });
   }
 };
 
 // 2 - get the code from google and exchange it for tokens
 exports.googleCallback = async (req, res, next) => {
   try {
-    const code = req.query.code;
+    const { code, state, error } = req.query;
+
+    // Check for OAuth errors
+    if (error) {
+      console.error('OAuth error from Google:', error);
+      return res.status(400).json({ 
+        message: "Authentication was cancelled or failed" 
+      });
+    }
+    
+    // Validate required parameters
     if (!code) {
-      return res.status(400).send(`Missing code: ${req.query.error || 'No code provided'}`);
+      return res.status(400).json({ message: "Authorization code not provided" });
+    }
+    
+    if (!state) {
+      return res.status(400).json({ message: "State parameter missing" });
+    }
+    
+    // Verify CSRF state
+    if (state !== req.session.oauthState) {
+      console.error('CSRF state mismatch:', { 
+        received: state, 
+        expected: req.session.oauthState 
+      });
+      return res.status(400).json({ message: "Invalid request state" });
     }
 
+    delete req.session.oauthState;
+
 // 3 - Exchange code for tokens
-    const response = await axios.post(
+    const tokenResponse  = await axios.post(
       "https://oauth2.googleapis.com/token",
       qs.stringify({
         code,
@@ -41,15 +79,19 @@ exports.googleCallback = async (req, res, next) => {
       }),
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
+      },
     );
 
-    if (response.status !== 200) {
-      return res.status(400).json({ message: "Failed to exchange code for tokens" });
+    if (tokenResponse.status !== 200) {
+      console.error('Token exchange failed:', tokenResponse.status);
+      return res.status(500).json({ message: "Authentication service error" });
     }
-    const { id_token } = response.data;
+    
+    const { id_token } = tokenResponse.data;
+    
     if (!id_token) {
-      return res.status(400).json({ message: "No id_token received from Google" });
+      console.error('No ID token received from Google');
+      return res.status(500).json({ message: "Authentication incomplete" });
     }
 
 // 4 - Verify id_token
@@ -62,31 +104,49 @@ exports.googleCallback = async (req, res, next) => {
       });
       payload = ticket.getPayload();
     } catch (error) {
-      return res.status(400).json({ message: `Error verifying Google ID token: ${error.message}` });
+      console.error('ID token verification failed:', error.message);
+      return res.status(401).json({ message: "Invalid authentication token" });
     }
 
-    if (payload) {
-      const { email, given_name, family_name, picture, sub, email_verified } = payload;
+      const { 
+      email, 
+      given_name, 
+      family_name, 
+      picture, 
+      sub, 
+      email_verified,
+    } = payload;
 
-      req.session.user = {
+    if (!email_verified) {
+      return res.status(400).json({ 
+        message: "Email address must be verified with Google" 
+      });
+    }
+// Regenerate session ID to prevent session fixation
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration failed:', err);
+        return res.status(500).json({ message: "Authentication failed" });
+      }
+
+      const userData = {
         firstName: given_name,
         lastName: family_name,
         id: sub,
         email,
       };
+      req.session.user = userData;
 
-// 5 - Ensure session is saved before redirect/response
+      // Ensure session is saved before redirect/response
       req.session.save((err) => {
         if (err) {
           return res.status(500).json({ message: "Session save failed" });
         }
-        // You can redirect to dashboard or send JSON 
+        // redirect to dashboard after session is saved
         console.log(req.session.user);
         res.redirect('/dashboard.html');
       });
-    } else {
-      return res.status(401).send("Invalid ID Token");
-    }
+    });
   } catch (err) {
     console.error("Error exchanging code", err.response?.data || err.message);
     return res.status(500).send("Authentication failed");
@@ -94,12 +154,19 @@ exports.googleCallback = async (req, res, next) => {
 };
 
 exports.logout = (req, res) => {
-  req.session?.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: "Failed to logout" });
-    }
-    res.clearCookie("connect.sid");
+  try{
+    const sessionID = req.sessionID
+    req.session?.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+    });
+
+    console.log('User logged out:', sessionID);
     res.status(200).json({ message: "Logged out successfully" });
-  });
+  }catch(error){
+    console.error(`Logout failed : ${error}`)
+    res.status(500).json({ message: "Logout failed" });
+  }
 };
 

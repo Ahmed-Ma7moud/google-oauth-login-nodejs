@@ -31,7 +31,15 @@ app.get('/api/dashboard', (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
-    res.json({ message: 'Welcome to the dashboard!', user: req.session.user });
+    const userData = req.session.user;
+    const atIndex = userData.email?.indexOf('@');
+    if (atIndex > 3) {
+    userData.email = userData.email?.slice(0, 3) + "***@gmail.com";
+  } else {
+    userData.email = "*****@gmail.com";
+  }
+    userData.id = userData.id?.slice(0,5) + "***"
+    res.json({ message: 'Welcome to the dashboard!', user: userData });
 });
 
 const port = process.env.PORT || 3000;
