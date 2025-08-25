@@ -6,6 +6,7 @@ require('dotenv').config({ path: __dirname + '/.env' });
 const path = require('path');
 const app = express();
 
+app.set('trust proxy', 1); // must trust proxy to get cookies / headers
 app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:3000',

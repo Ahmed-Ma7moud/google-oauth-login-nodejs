@@ -136,7 +136,6 @@ exports.googleCallback = async (req, res, next) => {
       };
       req.session.user = userData;
 
-      // Ensure session is saved before redirect/response
       req.session.save((err) => {
         if (err) {
           return res.status(500).json({ message: "Session save failed" });
