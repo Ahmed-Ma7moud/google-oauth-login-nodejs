@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Page</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login</h2>
+
+    <!-- Google Login -->
+    <img
+      src="./images/Google__G__logo.svg.webp"
+      alt="Login with Google"
+      class="google-logo"
+      id="google-login"
+    />
+
+    <!-- Email/Password Form -->
+    <form id="login-form">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    
+    document.getElementById('google-login').addEventListener('click', () => {
+        // Redirect to backend route that starts Google OAuth
+        window.location.href = '/google';
+    });
+
+  </script>
+</body>
+</html>

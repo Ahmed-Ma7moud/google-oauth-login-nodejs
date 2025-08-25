@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>User Profile</h2>
+    <div class="profile-info">
+      <p><strong>First Name:</strong> <span id="firstName"></span></p>
+      <p><strong>Last Name:</strong> <span id="lastName"></span></p>
+      <p><strong>Email:</strong> <span id="email"></span></p>
+      <p><strong>Google ID:</strong> <span id="googleId"></span></p>
+    </div>
+      <button id="logoutBtn">Logout</button>
+  </div>
+
+  <script>
+
+
+    // Fetch user profile from backend on window load
+    window.onload = async function fetchProfile() {
+      try {
+        const response = await fetch('http://localhost:3000/api/dashboard', {
+          // fetch('https://google-oauth-login-nodejs.onrender.com/api/dashboard', {
+          method: 'GET',
+          credentials: 'include' // important for cookies/session to work
+        });
+
+        const data = await response.json();
+        console.log('user data:', data);
+        if (!response.ok) {
+          // not logged in, redirect to login
+          window.location.href = '/index.html';
+          return;
+        }
+        // Populate the page with profile info
+        document.getElementById('firstName').textContent = data.user.firstName;
+        document.getElementById('lastName').textContent = data.user.lastName;
+        document.getElementById('email').textContent = data.user.email;
+        document.getElementById('googleId').textContent = data.user.id;
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        alert('Failed to load profile. Please log in again.');
+        window.location.href = '/index.html';
+      }
+    }
+
+    // Logout button handler with try/catch
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      try {
+        const response = await fetch('http://localhost:3000/api/logout', {
+          // fetch('https://google-oauth-login-nodejs.onrender.com/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        console.log(`Logout response:`, data);
+
+        if (!response.ok) {
+          alert('Logout failed.');
+          return;
+        }
+        alert('Logged out successfully.');
+        window.location.href = '/index.html';
+      } catch (error) {
+        alert('Logout failed.');
+      }
+    });
+
+  </script>
+</body>
+</html>
