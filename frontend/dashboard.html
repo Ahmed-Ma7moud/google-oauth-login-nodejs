@@ -24,8 +24,8 @@
     // Fetch user profile from backend on window load
     window.onload = async function fetchProfile() {
       try {
-        const response = await fetch('http://localhost:3000/api/dashboard', {
-          // fetch('https://google-oauth-login-nodejs.onrender.com/api/dashboard', {
+        // const response = await fetch('http://localhost:3000/api/dashboard', {
+          const response = await fetch('https://google-oauth-login-nodejs.onrender.com/api/dashboard', {
           method: 'GET',
           credentials: 'include' // important for cookies/session to work
         });
@@ -52,8 +52,8 @@
     // Logout button handler with try/catch
     document.getElementById('logoutBtn').addEventListener('click', async function() {
       try {
-        const response = await fetch('http://localhost:3000/api/logout', {
-          // fetch('https://google-oauth-login-nodejs.onrender.com/api/logout', {
+        // const response = await fetch('http://localhost:3000/api/logout', {
+          const response = await fetch('https://google-oauth-login-nodejs.onrender.com/api/logout', {
           method: 'POST',
           credentials: 'include'
         });
