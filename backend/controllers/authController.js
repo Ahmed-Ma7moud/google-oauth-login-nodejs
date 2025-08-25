@@ -56,13 +56,13 @@ exports.googleCallback = async (req, res, next) => {
     }
     
     // Verify CSRF state
-    if (state !== req.session.oauthState) {
-      console.error('CSRF state mismatch:', { 
-        received: state, 
-        expected: req.session.oauthState 
-      });
-      return res.status(400).json({ message: "Invalid request state" });
-    }
+    // if (state !== req.session.oauthState) {
+    //   console.error('CSRF state mismatch:', { 
+    //     received: state, 
+    //     expected: req.session.oauthState 
+    //   });
+    //   return res.status(400).json({ message: "Invalid request state" });
+    // }
 
     delete req.session.oauthState;
 
